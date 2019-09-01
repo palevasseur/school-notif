@@ -1,0 +1,17 @@
+{
+  "name": "school-notif",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "deploy bundles to Raspberry": "lftp -e \"set sftp:auto-confirm yes; set sftp:connect-program 'ssh'; open sftp://pi:p0sspi@192.168.1.16:22; cd Projects/school-notif; put ./index.js; put ./package.json; cd web; put ./web/index.html; bye;\"",
+    "ssh to Raspberry": "echo ========= & echo \"Project path : [cd Projects/school-notif]\" & echo \"To update package : [npm install --only=production]\" & echo \"Kill process : [ps aux | grep index] and [sudo kill xx]\" & echo ========== & ssh pi@192.168.1.16"
+  },
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "@types/node": "^12.7.3",
+    "aws-sdk": "^2.521.0",
+    "express": "^4.17.1"
+  }
+}
