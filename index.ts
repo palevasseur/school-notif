@@ -1,3 +1,5 @@
+import * as fs from "fs";
+
 const AWS = require('aws-sdk');
 const express = require('express');
 
@@ -17,32 +19,44 @@ app.use(express.static(__dirname + '/web'));
 
 // sms api
 app.get('/sms', (req, res) => {
-    if(!req.query.message) {
-        res.send('Error: missing message parameter !');
-        return;
-    }
+    try {
+        if (!req.query.message) {
+            res.send('Error: missing message parameter !');
+            return;
+        }
 
-    appConfig.phonesList.forEach(phoneNumber => {
         const sns = new AWS.SNS();
-        var params = {
-            Message: req.query.message,
-            MessageStructure: 'string',
-            PhoneNumber: /^\+/.test(phoneNumber) ? phoneNumber.slice(1) : phoneNumber, // phone number without the '+'
-            Subject: 'school notification'
-        };
+        appConfig.phonesList.forEach(phoneNumber => {
+            var params = {
+                Message: req.query.message,
+                MessageStructure: 'string',
+                PhoneNumber: /^\+/.test(phoneNumber) ? phoneNumber.slice(1) : phoneNumber, // phone number without the '+'
+                Subject: 'school notification'
+            };
 
-        sns.publish(params, function (err, data) {
-            if (err) {
-                console.log(err, err.stack);
-                res.send('FAILED to sent sms, error=' + JSON.stringify(err, null, 2) + ', params=' + JSON.stringify(params, null, 2));
-
-            }
-            else {
-                console.log(data);
-                res.send('Successful sent sms, data=' + JSON.stringify(data, null, 2) + ', params=' + JSON.stringify(params, null, 2));
-            }
+            sns.publish(params, function (err, data) {
+                if (err) {
+                    console.log('FAILED to sent sms, error=' + err + ', params=' + JSON.stringify(params, null, 2), err.stack);
+                    //res.send('FAILED to sent sms, error=' + err + ', params=' + JSON.stringify(params, null, 2)); // todo: send here => throw err "Error: Can't set headers after they are sent"
+                } else {
+                    console.log('Successful sent sms, data=' + JSON.stringify(data, null, 2) + ', params=' + JSON.stringify(params, null, 2));
+                    //res.send('Successful sent sms, data=' + JSON.stringify(data, null, 2) + ', params=' + JSON.stringify(params, null, 2)); // todo: send here => throw err "Error: Can't set headers after they are sent"
+                }
+            });
         });
-    });
+
+        res.send('' + new Date().toLocaleString() + ': Sent sms, message=' + req.query.message + ' to ' + JSON.stringify(appConfig.phonesList));
+    }
+    catch (e) {
+        console.log('Send sms FAILED, message=' + req.query.message + ' to ' + JSON.stringify(appConfig.phonesList) + ', Error=', e);
+    }
+});
+
+app.get('/log', (req, res) => {
+    const pathLog = __dirname + '/school-notif.log';
+    fs.existsSync(pathLog)
+        ? res.send('' + fs.readFileSync(pathLog)) // need to convert to string (avoid "download file")
+        : res.send('Log file "' + pathLog + '" doesn\'t exist');
 });
 
 app.listen(4000, _ => {
