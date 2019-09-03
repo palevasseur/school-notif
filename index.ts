@@ -36,10 +36,10 @@ app.get('/sms', (req, res) => {
 
             sns.publish(params, function (err, data) {
                 if (err) {
-                    console.log('FAILED to sent sms, error=' + err + ', params=' + JSON.stringify(params, null, 2), err.stack);
+                    console.log('' + new Date().toLocaleString() + ': FAILED to sent sms, error=' + err + ', params=' + JSON.stringify(params, null, 2), err.stack);
                     //res.send('FAILED to sent sms, error=' + err + ', params=' + JSON.stringify(params, null, 2)); // todo: send here => throw err "Error: Can't set headers after they are sent"
                 } else {
-                    console.log('Successful sent sms, data=' + JSON.stringify(data, null, 2) + ', params=' + JSON.stringify(params, null, 2));
+                    console.log('' + new Date().toLocaleString() + ': Successful sent sms, data=' + JSON.stringify(data, null, 2) + ', params=' + JSON.stringify(params, null, 2));
                     //res.send('Successful sent sms, data=' + JSON.stringify(data, null, 2) + ', params=' + JSON.stringify(params, null, 2)); // todo: send here => throw err "Error: Can't set headers after they are sent"
                 }
             });
@@ -48,7 +48,7 @@ app.get('/sms', (req, res) => {
         res.send('' + new Date().toLocaleString() + ': Sent sms, message=' + req.query.message + ' to ' + JSON.stringify(appConfig.phonesList));
     }
     catch (e) {
-        console.log('Send sms FAILED, message=' + req.query.message + ' to ' + JSON.stringify(appConfig.phonesList) + ', Error=', e);
+        console.log('' + new Date().toLocaleString() + ': Send sms FAILED, message=' + req.query.message + ' to ' + JSON.stringify(appConfig.phonesList) + ', Error=', e);
     }
 });
 
