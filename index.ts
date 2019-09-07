@@ -18,7 +18,7 @@ const app = express();
 app.use(express.static(__dirname + '/web'));
 
 // sms api
-app.get('/sms', (req, res) => {
+app.get('/notif', (req, res) => {
     try {
         if (!req.query.message) {
             res.send('Error: missing message parameter !');
@@ -26,26 +26,35 @@ app.get('/sms', (req, res) => {
         }
 
         const sns = new AWS.SNS();
-        appConfig.phonesList.forEach(phoneNumber => {
-            var params = {
-                Message: req.query.message,
-                MessageStructure: 'string',
-                PhoneNumber: /^\+/.test(phoneNumber) ? phoneNumber.slice(1) : phoneNumber, // phone number without the '+'
-                Subject: 'school notification'
-            };
+        const params = {
+            Message: req.query.message,
+            TopicArn: 'arn:aws:sns:eu-west-1:089938603528:school-notif-topic'
+        };
 
-            sns.publish(params, function (err, data) {
-                if (err) {
-                    console.log('' + new Date().toLocaleString() + ': FAILED to sent sms, error=' + err + ', params=' + JSON.stringify(params, null, 2), err.stack);
-                    //res.send('FAILED to sent sms, error=' + err + ', params=' + JSON.stringify(params, null, 2)); // todo: send here => throw err "Error: Can't set headers after they are sent"
-                } else {
-                    console.log('' + new Date().toLocaleString() + ': Successful sent sms, data=' + JSON.stringify(data, null, 2) + ', params=' + JSON.stringify(params, null, 2));
-                    //res.send('Successful sent sms, data=' + JSON.stringify(data, null, 2) + ', params=' + JSON.stringify(params, null, 2)); // todo: send here => throw err "Error: Can't set headers after they are sent"
-                }
-            });
+        const pub = sns.publish(params).promise();
+        pub.then(data => {
+            console.log('' + new Date().toLocaleString() + ': Successful sent email, data=' + JSON.stringify(data) + ', params=' + JSON.stringify(params));
+            const success = {
+                date: new Date().toLocaleString(),
+                action: 'email',
+                params: params,
+                result: 'success',
+                data: data
+            };
+            res.send(JSON.stringify(success));
+        }).catch(err => {
+            console.log('' + new Date().toLocaleString() + ': FAILED to sent email, error=' + err + ', params=' + JSON.stringify(params), err.stack);
+            const failed = {
+                date: new Date().toLocaleString(),
+                action: 'email',
+                params: params,
+                result: 'failed',
+                error: err
+            };
+            res.send(JSON.stringify(failed));
         });
 
-        res.send('' + new Date().toLocaleString() + ': Sent sms, message=' + req.query.message + ' to ' + JSON.stringify(appConfig.phonesList));
+        return pub;
     }
     catch (e) {
         console.log('' + new Date().toLocaleString() + ': Send sms FAILED, message=' + req.query.message + ' to ' + JSON.stringify(appConfig.phonesList) + ', Error=', e);
@@ -59,7 +68,7 @@ app.get('/log', (req, res) => {
         : res.send('Log file "' + pathLog + '" doesn\'t exist');
 });
 
-app.listen(4000, _ => {
+app.listen(4000, () => {
     console.log('App listening on http://localhost:4000 / http://192.168.1.16:4000');
 });
 

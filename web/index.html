@@ -19,7 +19,7 @@
     }
 
     const dateTime = new Date().toLocaleDateString() + ' ' + new Date().toLocaleTimeString();
-    const fetchUrl = 'http://192.168.1.16:4000/sms?message=' + encodeURIComponent(`${dateTime}: ${message}`);
+    const fetchUrl = 'http://' + window.location.hostname + ':4000/notif?message=' + encodeURIComponent(`${dateTime}: ${message}`);
     fetch(fetchUrl)
       .then(function() {
         document.getElementById("status").innerText = `${dateTime}: ${message} => message envoyé`;
@@ -27,6 +27,11 @@
       .catch(function (err) {
         document.getElementById("status").innerText = `${dateTime}: ${message} => ERREUR, ${err}`;
       });
+
+    document.getElementById("sendButton").disabled = true;
+    setTimeout(_ => {
+      document.getElementById("sendButton").disabled = false;
+    }, 1000)
   }
 
   function setMessage(message) {
@@ -43,33 +48,14 @@
   }, 100);
 </script>
 <body>
-  <h3>SMS</h3>
+  <h3>Message</h3>
   <div class="container-fluid">
-    <div class="form-check-inline">
-      <label class="form-check-label" for="radio1">
-        <input type="radio" class="form-check-input" id="radio1" name="optradio"  onclick="setMessage('')" checked>Nouveau message
-      </label>
-    </div>
-    <div class="form-check-inline">
-      <label class="form-check-label" for="radio2">
-        <input type="radio" class="form-check-input" id="radio2" name="optradio" onclick="setMessage('Je suis à la maison')">Je suis à la maison
-      </label>
-    </div>
-    <div class="form-check-inline">
-      <label class="form-check-label" for="radio3">
-        <input type="radio" class="form-check-input" id="radio3" name="optradio" onclick="setMessage('J\'ai terminé mes leçons')">J'ai terminé mes leçons
-      </label>
-    </div>
-    <div class="form-check-inline">
-      <label class="form-check-label" for="radio4">
-        <input type="radio" class="form-check-input" id="radio4" name="optradio" onclick="setMessage('J\'ai une question, j\ai envoyé un mail')">J'ai une question, j'ai envoyé un mail
-      </label>
-    </div>
-
+    <button type="button" class="btn btn-outline-primary" onclick="setMessage('Je suis à la maison')">Je suis à la maison</button>
+    <button type="button" class="btn btn-outline-primary" onclick="setMessage('J\'ai terminé mes leçons')">J'ai terminé mes leçons</button>
+    <br/><br/>
     <textarea rows="5" type="text" class="form-control" id="message" onkeyup="checkSentButton()"></textarea>
-
-
-    <button type="button" class="btn btn-outline-primary" id="sendButton" onclick="sendMessage()">Envoyer</button>
+    <br/>
+    <button type="button" class="btn btn-primary" id="sendButton" onclick="sendMessage()">Envoyer</button>
 
     <div id="status"></div>
   </div>
